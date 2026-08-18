@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Anwar Iron and Hardware Store</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0C3B6E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Anwar Store">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%230C3B6E'/%3E%3Cpath d='M6 24L20 10L34 24' fill='none' stroke='%23FFFFFF' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='27' cy='15' r='6' fill='none' stroke='%23D8AA3E' stroke-width='2.5'/%3E%3Ccircle cx='27' cy='15' r='1.8' fill='%23D8AA3E'/%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:#F3F4F6; color:#111827; }
+  input, select, button { font-family: inherit; font-size:14px; }
+  .header { background:#0C3B6E; color:white; padding:14px 20px; }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; max-width:880px; margin:0 auto; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand-name { font-size:15px; font-weight:600; }
+  .logout-btn { background:none; border:none; color:#B7CBE3; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:4px; }
+  .container { max-width:880px; margin:0 auto; padding:0 20px 24px; }
+  .nav { display:flex; gap:6px; padding:14px 0; }
+  .nav button { border:none; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:500; cursor:pointer; background:transparent; color:#374151; }
+  .nav button.active { background:#0C3B6E; color:white; }
+  .card { background:white; border-radius:10px; padding:16px; margin-bottom:14px; }
+  .grid-stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .stat { background:white; border-radius:10px; padding:12px 18px; flex:1 1 140px; }
+  .stat-label { font-size:12px; color:#6B7280; }
+  .stat-value { font-size:22px; font-weight:600; }
+  .stat-warn { color:#B45309; }
+  .btn-primary { background:#0C3B6E; color:white; border:none; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; }
+  .btn-secondary { background:white; border:1px solid #D1D5DB; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+  .search-wrap { position:relative; flex:1 1 220px; }
+  .search-wrap input { width:100%; padding:8px 10px 8px 30px; border-radius:8px; border:1px solid #D1D5DB; box-sizing:border-box; }
+  .search-icon { position:absolute; left:9px; top:9px; color:#9CA3AF; font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead tr { background:#F9FAFB; color:#6B7280; text-align:left; }
+  th, td { padding:10px 12px; }
+  tbody tr { border-top:1px solid #F0F0F0; }
+  .empty-state { background:white; border-radius:10px; padding:40px 20px; text-align:center; color:#6B7280; }
+  .icon-btn { border:none; background:none; cursor:pointer; padding:4px; font-size:14px; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; padding:16px; z-index:20; }
+  .modal { background:white; border-radius:12px; padding:20px; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; }
+  .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .modal-title { font-size:16px; font-weight:600; }
+  .field { margin-bottom:12px; }
+  .field label { font-size:12px; color:#6B7280; display:block; margin-bottom:4px; }
+  .field input, .field select { width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D1D5DB; box-sizing:border-box; }
+  .two-col { display:flex; gap:10px; }
+  .two-col > div { flex:1; }
+  .margin-box { border-radius:8px; padding:8px 12px; font-size:13px; margin-bottom:12px; }
+  .margin-pos { background:#F0FDF4; color:#166534; }
+  .margin-neg { background:#FEF2F2; color:#991B1B; }
+  .error-text { color:#B91C1C; font-size:13px; margin-bottom:8px; }
+  .save-error { background:#FEF2F2; color:#991B1B; padding:8px 12px; border-radius:8px; font-size:13px; margin-bottom:12px; }
+  .login-wrap { min-height:100vh; background:#0C3B6E; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-card { background:white; border-radius:14px; padding:28px; width:100%; max-width:340px; text-align:center; }
+  .login-card input { width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D1D5DB; box-sizing:border-box; text-align:center; font-size:18px; letter-spacing:4px; margin-top:8px; }
+  .pos-search-results { border:1px solid #E5E7EB; border-radius:8px; overflow:hidden; margin-top:8px; }
+  .pos-result { display:flex; justify-content:space-between; padding:8px 10px; font-size:13px; cursor:pointer; border-bottom:1px solid #F3F4F6; }
+  .pos-result:hover { background:#F9FAFB; }
+  .cart-line { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-bottom:1px solid #F3F4F6; flex-wrap:wrap; gap:6px; }
+  .qty-controls { display:flex; align-items:center; gap:6px; }
+  .qty-controls button { width:26px; height:26px; border:1px solid #D1D5DB; background:white; border-radius:6px; cursor:pointer; }
+  .qty-controls input { width:64px; text-align:center; padding:4px; border-radius:6px; border:1px solid #D1D5DB; }
+  .warning-box { background:#FFFBEB; color:#92400E; border-radius:8px; padding:8px 12px; font-size:13px; margin-bottom:12px; }
+  .totals-row { display:flex; justify-content:space-between; font-size:13px; color:#6B7280; padding:2px 0; align-items:center; }
+  .totals-row input { width:90px; padding:4px 8px; border-radius:6px; border:1px solid #D1D5DB; text-align:right; font-size:13px; }
+  .grand-total { display:flex; justify-content:space-between; font-size:17px; font-weight:600; border-top:1px solid #111827; margin-top:8px; padding-top:10px; color:#B45309; }
+  .receipt-header { display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px solid #111827; }
+  .receipt-meta { display:flex; justify-content:space-between; font-size:12px; color:#6B7280; padding-top:10px; }
+  .btn-row { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .btn-row button { flex:1; min-width:100px; }
+  .btn-outline { border:1px solid #D1D5DB; background:white; border-radius:8px; padding:10px; font-size:13px; cursor:pointer; }
+  .btn-whatsapp { background:#25D366; color:white; border:none; border-radius:8px; padding:10px; font-size:13px; font-weight:500; cursor:pointer; }
+  .low-tag { color:#B45309; }
+  .hidden { display:none; }
+  @media print {
+    .no-print { display:none !important; }
+    body { background:white; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var CATEGORIES = [
+    "Locks, Keys, & Door Fittings",
+    "Timber and Wood",
+    "Door Handles & Latches",
+    "Iron Nails & Miscellaneous Screws",
+    "Hinges, Chains, Bolts, Hardware",
+    "Paints, Tools, & Construction Equipment",
+    "White Plastic (for Roofs)",
+    "Steel Jali (Wire Mesh)"
+  ];
+  var UOMS = ["kg", "feet", "item", "roll", "set", "packet", "piece"];
+  var STORE_NAME = "Anwar Iron and Hardware Store";
+  var STORE_ADDRESS = "Main Ajnala Road, Bhalwal";
+
+  var K_PRODUCTS = "ais_products";
+  var K_BILLS = "ais_bills";
+  var K_PIN = "ais_pin";
+  var K_PENDING = "ais_pending_sync";
+
+  // ---------- CLOUD SYNC CONFIG ----------
+  // Paste your Supabase project URL and anon (public) key below.
+  // Leave as-is to run the app with local storage only (no cross-device sync).
+  var SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
+  var SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY_HERE";
+  var supabaseClient = null;
+  var syncConfigured = SUPABASE_URL.indexOf("PASTE_") === -1 && SUPABASE_ANON_KEY.indexOf("PASTE_") === -1;
+  if (syncConfigured && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  var state = {
+    loggedIn: false,
+    tab: "dashboard",
+    products: load(K_PRODUCTS, []),
+    bills: load(K_BILLS, []),
+    pin: load(K_PIN, null),
+    editingProductId: null,
+    showProductForm: false,
+    invQuery: "",
+    posQuery: "",
+    cart: [],
+    customerName: "",
+    discount: "",
+    posWarning: "",
+    receiptBill: null,
+    showCustomItemForm: false,
+    customItemDraft: { name: "", qty: "", price: "" },
+    syncStatus: !syncConfigured ? "off" : (navigator.onLine ? "syncing" : "offline")
+  };
+
+  function load(key, fallback) {
+    try {
+      var v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function persist() {
+    try {
+      localStorage.setItem(K_PRODUCTS, JSON.stringify(state.products));
+      localStorage.setItem(K_BILLS, JSON.stringify(state.bills));
+      if (state.pin) localStorage.setItem(K_PIN, JSON.stringify(state.pin));
+    } catch (e) {
+      console.error("Storage error", e);
+    }
+  }
+
+  // ---------- CLOUD SYNC ENGINE ----------
+  // Everything below is additive: if Supabase isn't configured, or the device
+  // is offline, the app behaves exactly as the local-only version did.
+  function getPendingQueue() { return load(K_PENDING, []); }
+  function setPendingQueue(q) { try { localStorage.setItem(K_PENDING, JSON.stringify(q)); } catch (e) {} }
+  function queuePending(kind, id) {
+    var q = getPendingQueue();
+    if (!q.some(function (x) { return x.kind === kind && x.id === id; })) {
+      q.push({ kind: kind, id: id });
+      setPendingQueue(q);
+    }
+  }
+  function clearPending(kind, id) {
+    setPendingQueue(getPendingQueue().filter(function (x) { return !(x.kind === kind && x.id === id); }));
+  }
+
+  function productToRow(p) {
+    return {
+      id: p.id, name: p.name, category: p.category, uom: p.uom,
+      cost_price: p.costPrice, retail_price: p.retailPrice,
+      qty: p.qty, reorder_level: p.reorderLevel, supplier: p.supplier,
+      updated_at: p.updatedAt || new Date().toISOString(), deleted: !!p.deleted
+    };
+  }
+  function rowToProduct(r) {
+    return {
+      id: r.id, name: r.name, category: r.category, uom: r.uom,
+      costPrice: Number(r.cost_price) || 0, retailPrice: Number(r.retail_price) || 0,
+      qty: r.qty == null ? null : Number(r.qty), reorderLevel: r.reorder_level == null ? null : Number(r.reorder_level),
+      supplier: r.supplier || "", updatedAt: r.updated_at, deleted: !!r.deleted
+    };
+  }
+  function billToRow(b) {
+    return {
+      id: b.id, bill_number: b.billNumber, date: b.date, customer_name: b.customerName,
+      items: b.items, subtotal: b.subtotal, discount: b.discount, total: b.total,
+      updated_at: b.updatedAt || new Date().toISOString()
+    };
+  }
+  function rowToBill(r) {
+    return {
+      id: r.id, billNumber: r.bill_number, date: r.date, customerName: r.customer_name || "",
+      items: r.items || [], subtotal: Number(r.subtotal) || 0, discount: Number(r.discount) || 0,
+      total: Number(r.total) || 0, updatedAt: r.updated_at
+    };
+  }
+
+  function setSyncStatus(s) { state.syncStatus = s; renderSyncBadge(); }
+
+  function pushProduct(p) {
+    if (!supabaseClient) return;
+    setSyncStatus("syncing");
+    supabaseClient.from("products").upsert(productToRow(p)).then(function (res) {
+      if (res.error) { queuePending("product", p.id); setSyncStatus("offline"); }
+      else { clearPending("product", p.id); setSyncStatus("synced"); }
+    }).catch(function () { queuePending("product", p.id); setSyncStatus("offline"); });
+  }
+  function pushBill(b) {
+    if (!supabaseClient) return;
+    setSyncStatus("syncing");
+    supabaseClient.from("bills").upsert(billToRow(b)).then(function (res) {
+      if (res.error) { queuePending("bill", b.id); setSyncStatus("offline"); }
+      else { clearPending("bill", b.id); setSyncStatus("synced"); }
+    }).catch(function () { queuePending("bill", b.id); setSyncStatus("offline"); });
+  }
+
+  function flushPendingQueue() {
+    if (!supabaseClient || !navigator.onLine) return;
+    var q = getPendingQueue();
+    q.forEach(function (item) {
+      if (item.kind === "product") {
+        var p = state.products.find(function (x) { return x.id === item.id; });
+        if (p) pushProduct(p); else clearPending("product", item.id);
+      } else if (item.kind === "bill") {
+        var b = state.bills.find(function (x) { return x.id === item.id; });
+        if (b) pushBill(b); else clearPending("bill", item.id);
+      }
+    });
+  }
+
+  function mergeByUpdatedAt(localList, remoteList, keyFn) {
+    var map = {};
+    localList.forEach(function (item) { map[item.id] = item; });
+    remoteList.forEach(function (remote) {
+      var local = map[remote.id];
+      if (!local || !local.updatedAt || (remote.updatedAt && remote.updatedAt > local.updatedAt)) {
+        map[remote.id] = remote;
+      }
+    });
+    return Object.keys(map).map(function (k) { return map[k]; });
+  }
+
+  function pullAndMerge() {
+    if (!supabaseClient) return;
+    setSyncStatus("syncing");
+    Promise.all([
+      supabaseClient.from("products").select("*"),
+      supabaseClient.from("bills").select("*")
+    ]).then(function (results) {
+      var prodRes = results[0], billRes = results[1];
+      if (!prodRes.error && prodRes.data) {
+        var remoteProducts = prodRes.data.map(rowToProduct).filter(function (p) { return !p.deleted; });
+        state.products = mergeByUpdatedAt(state.products, remoteProducts);
+      }
+      if (!billRes.error && billRes.data) {
+        var remoteBills = billRes.data.map(rowToBill);
+        state.bills = mergeByUpdatedAt(state.bills, remoteBills);
+        state.bills.sort(function (a, b) { return (b.billNumber || 0) - (a.billNumber || 0); });
+      }
+      persist();
+      setSyncStatus("synced");
+      if (state.loggedIn) render();
+    }).catch(function () { setSyncStatus("offline"); });
+  }
+
+  function subscribeRealtime() {
+    if (!supabaseClient) return;
+    supabaseClient.channel("products-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, function (payload) {
+        if (payload.eventType === "DELETE") return;
+        var incoming = rowToProduct(payload.new);
+        if (incoming.deleted) {
+          state.products = state.products.filter(function (p) { return p.id !== incoming.id; });
+        } else {
+          state.products = mergeByUpdatedAt(state.products, [incoming]);
+        }
+        persist();
+        if (state.loggedIn) render();
+      }).subscribe();
+    supabaseClient.channel("bills-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bills" }, function (payload) {
+        if (payload.eventType === "DELETE") return;
+        var incoming = rowToBill(payload.new);
+        state.bills = mergeByUpdatedAt(state.bills, [incoming]);
+        state.bills.sort(function (a, b) { return (b.billNumber || 0) - (a.billNumber || 0); });
+        persist();
+        if (state.loggedIn) render();
+      }).subscribe();
+  }
+
+  function renderSyncBadge() {
+    var el = document.getElementById("syncBadge");
+    if (!el) return;
+    var map = {
+      off: ["#9CA3AF", "Cloud sync not set up"],
+      offline: ["#D97706", "Offline \u2014 saving locally"],
+      syncing: ["#D97706", "Syncing\u2026"],
+      synced: ["#22C55E", "Synced"]
+    };
+    var v = map[state.syncStatus] || map.off;
+    el.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:' + v[0] + ';display:inline-block;"></span>' + v[1];
+  }
+
+  window.addEventListener("online", function () { setSyncStatus("syncing"); flushPendingQueue(); pullAndMerge(); });
+  window.addEventListener("offline", function () { setSyncStatus("offline"); });
+  function currency(n) {
+    var v = Number(n) || 0;
+    return "Rs " + v.toLocaleString("en-PK", { maximumFractionDigits: 2 });
+  }
+  function parseNum(v) {
+    if (v == null) return NaN;
+    var cleaned = String(v).replace(/,/g, "").trim();
+    if (cleaned === "") return NaN;
+    return Number(cleaned);
+  }
+  function todayStr() {
+    var d = new Date();
+    return d.toISOString().slice(0, 10);
+  }
+  function todayDisplay() {
+    return new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  }
+  function uid() {
+    return Date.now() + "-" + Math.random().toString(36).slice(2);
+  }
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = s == null ? "" : String(s);
+    return d.innerHTML;
+  }
+  function unitLabel(uom) {
+    var map = { kg: "per kg", feet: "per ft", item: "per item", roll: "per roll", set: "per set", packet: "per packet", piece: "per piece" };
+    return map[uom] || "per unit";
+  }
+
+  var app = document.getElementById("app");
+
+  function render() {
+    if (!state.loggedIn) { renderLogin(); return; }
+    var html = "";
+    html += '<div class="header no-print"><div class="header-inner">';
+    html += '<div class="brand">' + logoSvg(28) + '<div class="brand-name">' + esc(STORE_NAME) + '</div></div>';
+    html += '<div style="display:flex;align-items:center;gap:14px;">';
+    html += '<span id="syncBadge" style="display:flex;align-items:center;gap:5px;font-size:11px;color:#B7CBE3;"></span>';
+    html += '<button class="logout-btn" id="logoutBtn">Log out</button>';
+    html += '</div>';
+    html += '</div></div>';
+    html += '<div class="container">';
+    html += '<div class="nav no-print">';
+    html += navBtn("dashboard", "Dashboard");
+    html += navBtn("inventory", "Inventory");
+    html += navBtn("pos", "New bill");
+    html += '</div>';
+    if (state.saveError) html += '<div class="save-error">' + esc(state.saveError) + '</div>';
+    if (state.tab === "dashboard") html += renderDashboard();
+    if (state.tab === "inventory") html += renderInventory();
+    if (state.tab === "pos") html += renderPOS();
+    html += '</div>';
+    if (state.showProductForm) html += renderProductForm();
+    if (state.receiptBill) html += renderReceipt(state.receiptBill);
+    app.innerHTML = html;
+    attachHandlers();
+    renderSyncBadge();
+  }
+
+  function navBtn(key, label) {
+    return '<button data-tab="' + key + '" class="' + (state.tab === key ? "active" : "") + '">' + label + '</button>';
+  }
+
+  function logoSvg(size) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 40 40" aria-hidden="true">' +
+      '<path d="M4 22L20 8L36 22" fill="none" stroke="#D8AA3E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="27" cy="14" r="7" fill="none" stroke="#D8AA3E" stroke-width="2"/>' +
+      '<circle cx="27" cy="14" r="2" fill="#D8AA3E"/></svg>';
+  }
+
+  // ---------- LOGIN ----------
+  function renderLogin() {
+    var settingUp = !state.pin;
+    var html = '<div class="login-wrap"><div class="login-card">';
+    html += logoSvg(40);
+    html += '<div style="font-size:16px;font-weight:600;margin-top:10px;">' + esc(STORE_NAME) + '</div>';
+    html += '<div style="font-size:13px;color:#6B7280;margin-bottom:18px;">' + (settingUp ? "Set an admin PIN to protect this app" : "Enter your admin PIN") + '</div>';
+    html += '<input type="password" inputmode="numeric" id="pinInput" placeholder="PIN">';
+    if (settingUp) html += '<input type="password" inputmode="numeric" id="pinConfirm" placeholder="Confirm PIN">';
+    html += '<div class="error-text" id="loginError" style="margin-top:8px;"></div>';
+    html += '<button class="btn-primary" style="width:100%;margin-top:6px;" id="loginSubmit">' + (settingUp ? "Set PIN and continue" : "Log in") + '</button>';
+    html += '</div></div>';
+    app.innerHTML = html;
+
+    document.getElementById("loginSubmit").addEventListener("click", function () {
+      var val = document.getElementById("pinInput").value;
+      var errEl = document.getElementById("loginError");
+      if (settingUp) {
+        var confirmVal = document.getElementById("pinConfirm").value;
+        if (val.length < 4) { errEl.textContent = "PIN must be at least 4 digits."; return; }
+        if (val !== confirmVal) { errEl.textContent = "PINs don't match."; return; }
+        state.pin = val;
+        persist();
+        state.loggedIn = true;
+        render();
+      } else {
+        if (val !== state.pin) { errEl.textContent = "Incorrect PIN."; return; }
+        state.loggedIn = true;
+        render();
+      }
+    });
+  }
+
+  // ---------- DASHBOARD ----------
+  function renderDashboard() {
+    var today = todayStr();
+    var todaysBills = state.bills.filter(function (b) { return b.date === today; });
+    var todaysSales = todaysBills.reduce(function (s, b) { return s + b.total; }, 0);
+    var todaysProfit = todaysBills.reduce(function (s, b) {
+      return s + b.items.reduce(function (si, it) { return si + (it.unitRetail - it.unitCost) * it.qty; }, 0);
+    }, 0);
+    var lowStock = state.products.filter(function (p) { return p.qty != null && p.reorderLevel != null && p.qty <= p.reorderLevel; });
+
+    var html = '<div class="grid-stats">';
+    html += '<div class="stat"><div class="stat-label">Today\'s sales</div><div class="stat-value">' + currency(todaysSales) + '</div></div>';
+    html += '<div class="stat"><div class="stat-label">Today\'s profit</div><div class="stat-value">' + currency(todaysProfit) + '</div></div>';
+    html += '<div class="stat"><div class="stat-label">Low stock</div><div class="stat-value ' + (lowStock.length ? "stat-warn" : "") + '">' + lowStock.length + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="row"><button class="btn-primary" style="flex:1;" data-tab="pos">New bill</button><button class="btn-secondary" style="flex:1;" data-tab="inventory">Inventory</button></div>';
+
+    if (lowStock.length) {
+      html += '<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">Low stock alerts</div>';
+      lowStock.slice(0, 6).forEach(function (p) {
+        html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#B45309;"><span>' + esc(p.name) + '</span><span>' + p.qty + ' ' + esc(p.uom) + ' left</span></div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">Recent bills</div>';
+    if (!state.bills.length) html += '<div style="font-size:13px;color:#6B7280;">No bills yet.</div>';
+    state.bills.slice(0, 5).forEach(function (b) {
+      html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>#' + b.billNumber + (b.customerName ? " · " + esc(b.customerName) : "") + '</span><span>' + currency(b.total) + '</span></div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // ---------- INVENTORY ----------
+  function renderInventory() {
+    var q = state.invQuery.toLowerCase();
+    var filtered = state.products.filter(function (p) {
+      return p.name.toLowerCase().indexOf(q) !== -1 || p.category.toLowerCase().indexOf(q) !== -1;
+    });
+
+    var html = '<div class="row">';
+    html += '<div class="search-wrap"><span class="search-icon">&#128269;</span><input id="invSearch" placeholder="Search products" value="' + esc(state.invQuery) + '"></div>';
+    html += '<button class="btn-primary" id="addProductBtn">+ Add product</button>';
+    html += '<button class="btn-secondary" id="exportCsvBtn">Export CSV</button>';
+    html += '<button class="btn-secondary" id="importCsvBtn">Import CSV</button>';
+    html += '<input type="file" id="importCsvFile" accept=".csv" class="hidden">';
+    html += '</div>';
+
+    if (!filtered.length) {
+      html += '<div class="empty-state">' + (state.products.length ? "No products match your search." : "No products yet. Add your first one to get started.") + '</div>';
+      return html;
+    }
+
+    html += '<div class="card" style="padding:0;overflow-x:auto;"><table><thead><tr><th>Product</th><th>Category</th><th style="text-align:right;">Cost</th><th style="text-align:right;">Retail</th><th style="text-align:right;">Margin</th><th style="text-align:right;">Stock</th><th></th></tr></thead><tbody>';
+    filtered.forEach(function (p) {
+      var margin = p.costPrice !== 0 ? ((p.retailPrice - p.costPrice) / p.costPrice) * 100 : null;
+      var tracked = p.qty != null && p.reorderLevel != null;
+      var low = tracked && p.qty <= p.reorderLevel;
+      var stockDisplay = p.qty != null ? (p.qty + ' ' + esc(p.uom)) : '—';
+      html += '<tr>';
+      html += '<td>' + esc(p.name) + '</td>';
+      html += '<td style="color:#6B7280;">' + esc(p.category) + '</td>';
+      html += '<td style="text-align:right;">' + currency(p.costPrice) + '</td>';
+      html += '<td style="text-align:right;">' + currency(p.retailPrice) + '</td>';
+      html += '<td style="text-align:right;color:' + (margin != null && margin < 0 ? "#B91C1C" : "#15803D") + ';">' + (margin != null ? margin.toFixed(0) + "%" : "—") + '</td>';
+      html += '<td style="text-align:right;" class="' + (low ? "low-tag" : "") + '">' + (low ? "&#9888; " : "") + stockDisplay + '</td>';
+      html += '<td style="text-align:right;white-space:nowrap;"><button class="icon-btn" data-edit="' + p.id + '">&#9998;</button><button class="icon-btn" data-delete="' + p.id + '" style="color:#B91C1C;">&#128465;</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function renderProductForm() {
+    var editing = state.editingProductId ? state.products.find(function (p) { return p.id === state.editingProductId; }) : null;
+    var f = state.form || { name: "", category: CATEGORIES[0], uom: UOMS[0], costPrice: "", retailPrice: "", qty: "", reorderLevel: "", supplier: "" };
+
+    var catOptions = CATEGORIES.map(function (c) { return '<option value="' + esc(c) + '" ' + (f.category === c ? "selected" : "") + '>' + esc(c) + '</option>'; }).join("");
+    var uomOptions = UOMS.map(function (u) { return '<option value="' + esc(u) + '" ' + (f.uom === u ? "selected" : "") + '>' + esc(u) + '</option>'; }).join("");
+
+    var html = '<div class="modal-overlay" id="productOverlay"><div class="modal">';
+    html += '<div class="modal-header"><div class="modal-title">' + (editing ? "Edit product" : "Add product") + '</div><button class="icon-btn" id="closeProductForm">&#10005;</button></div>';
+    html += '<div class="field"><label>Product name</label><input id="f_name" value="' + esc(f.name) + '" placeholder="e.g. Steel nails"></div>';
+    html += '<div class="field"><label>Category</label><select id="f_category">' + catOptions + '</select></div>';
+    html += '<div class="field"><label>Unit of measurement</label><select id="f_uom">' + uomOptions + '</select></div>';
+    html += '<div class="two-col"><div class="field"><label id="costLabel">Cost price (' + unitLabel(f.uom) + ')</label><input id="f_cost" type="text" inputmode="decimal" value="' + esc(f.costPrice) + '" placeholder="280"></div>';
+    html += '<div class="field"><label id="retailLabel">Retail price (' + unitLabel(f.uom) + ')</label><input id="f_retail" type="text" inputmode="decimal" value="' + esc(f.retailPrice) + '" placeholder="320"></div></div>';
+    html += '<div id="marginBox"></div>';
+    html += '<div class="two-col"><div class="field"><label>Quantity in stock (optional)</label><input id="f_qty" type="text" inputmode="decimal" value="' + esc(f.qty) + '" placeholder="Leave blank if not tracked"></div>';
+    html += '<div class="field"><label>Reorder level (optional)</label><input id="f_reorder" type="text" inputmode="decimal" value="' + esc(f.reorderLevel) + '" placeholder="Leave blank"></div></div>';
+    html += '<div class="field"><label>Supplier (optional)</label><input id="f_supplier" value="' + esc(f.supplier) + '"></div>';
+    html += '<div class="error-text" id="formError"></div>';
+    html += '<button class="btn-primary" style="width:100%;" id="saveProductBtn">' + (editing ? "Save changes" : "Add product") + '</button>';
+    html += '</div></div>';
+    return html;
+  }
+
+  function updateMarginBox() {
+    var costEl = document.getElementById("f_cost");
+    var retailEl = document.getElementById("f_retail");
+    var box = document.getElementById("marginBox");
+    if (!costEl || !retailEl || !box) return;
+    var cost = parseNum(costEl.value), retail = parseNum(retailEl.value);
+    if (costEl.value === "" || retailEl.value === "" || isNaN(cost) || isNaN(retail) || cost === 0) {
+      box.innerHTML = "";
+      return;
+    }
+    var amount = retail - cost;
+    var pct = (amount / cost) * 100;
+    box.innerHTML = '<div class="margin-box ' + (amount < 0 ? "margin-neg" : "margin-pos") + '">Margin: ' + currency(amount) + ' (' + pct.toFixed(0) + '%)' + (amount < 0 ? " — selling below cost" : "") + '</div>';
+  }
+
+  // ---------- POS ----------
+  function renderPOS() {
+    var q = state.posQuery.trim().toLowerCase();
+    var results = q ? state.products.filter(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 6) : [];
+
+    var html = '<div class="card">';
+    html += '<div class="search-wrap"><span class="search-icon">&#128269;</span><input id="posSearch" placeholder="Search products to add" value="' + esc(state.posQuery) + '"></div>';
+    if (results.length) {
+      html += '<div class="pos-search-results">';
+      results.forEach(function (p) {
+        var stockNote = p.qty != null ? (p.qty + ' in stock') : 'price only';
+        html += '<div class="pos-result" data-add="' + p.id + '"><span>' + esc(p.name) + '</span><span style="color:#6B7280;">' + currency(p.retailPrice) + ' / ' + esc(p.uom) + ' · ' + stockNote + '</span></div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="row" style="margin-bottom:12px;"><button class="btn-secondary" id="addCustomItemBtn">+ Add custom item</button></div>';
+    if (state.showCustomItemForm) {
+      html += '<div class="card">';
+      html += '<div class="two-col"><div class="field"><label>Item name</label><input id="ci_name" value="' + esc(state.customItemDraft.name) + '" placeholder="e.g. Delivery charge"></div>';
+      html += '<div class="field"><label>Quantity</label><input id="ci_qty" type="text" inputmode="decimal" value="' + esc(state.customItemDraft.qty) + '" placeholder="e.g. 1.5"></div></div>';
+      html += '<div class="field"><label>Price (per unit)</label><input id="ci_price" type="text" inputmode="decimal" value="' + esc(state.customItemDraft.price) + '" placeholder="e.g. 500"></div>';
+      html += '<div class="error-text" id="customItemError"></div>';
+      html += '<div class="row" style="margin-bottom:0;"><button class="btn-primary" id="saveCustomItemBtn">Add to bill</button><button class="btn-outline" id="cancelCustomItemBtn">Cancel</button></div>';
+      html += '</div>';
+    }
+
+    html += '<input id="customerName" placeholder="Customer name (optional)" value="' + esc(state.customerName) + '" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #D1D5DB;box-sizing:border-box;margin-bottom:12px;background:white;">';
+
+    html += '<div class="card" style="padding:0;">';
+    if (!state.cart.length) {
+      html += '<div style="padding:24px;text-align:center;color:#6B7280;font-size:13px;">Search above to add items, or add a custom item.</div>';
+    } else {
+      state.cart.forEach(function (c) {
+        html += '<div class="cart-line"><div><div style="font-size:14px;">' + esc(c.name) + (c.productId ? '' : ' <span style="color:#9CA3AF;font-size:11px;">(custom)</span>') + '</div><div style="font-size:12px;color:#6B7280;">' + currency(c.unitRetail) + (c.uom ? ' / ' + esc(c.uom) : '') + '</div></div>';
+        html += '<div class="qty-controls">';
+        html += '<button data-qtyminus="' + c.lineId + '">−</button>';
+        html += '<input type="text" inputmode="decimal" data-qtyinput="' + c.lineId + '" value="' + c.qty + '">';
+        html += '<button data-qtyplus="' + c.lineId + '">+</button>';
+        html += '<span style="min-width:60px;text-align:right;font-size:14px;font-weight:500;">' + currency(c.qty * c.unitRetail) + '</span>';
+        html += '<button class="icon-btn" data-removeline="' + c.lineId + '" style="color:#B91C1C;">&#10005;</button>';
+        html += '</div></div>';
+      });
+    }
+    html += '</div>';
+
+    if (state.posWarning) html += '<div class="warning-box">' + esc(state.posWarning) + '</div>';
+
+    var subtotal = state.cart.reduce(function (s, c) { return s + c.qty * c.unitRetail; }, 0);
+    var discountVal = parseNum(state.discount) || 0;
+    var total = Math.max(0, subtotal - discountVal);
+
+    html += '<div class="card">';
+    html += '<div class="totals-row"><span>Subtotal</span><span>' + currency(subtotal) + '</span></div>';
+    html += '<div class="totals-row"><span>Discount</span><input id="discountInput" type="text" inputmode="decimal" value="' + esc(state.discount) + '" placeholder="0"></div>';
+    html += '<div class="grand-total"><span>Grand total</span><span>' + currency(total) + '</span></div>';
+    html += '<button class="btn-primary" style="width:100%;margin-top:14px;padding:12px;font-size:15px;" id="confirmSaleBtn">Confirm sale</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderReceipt(bill) {
+    var html = '<div class="modal-overlay"><div class="modal">';
+    html += '<div class="receipt-header">' + logoSvg(30) + '<div><div style="font-size:15px;font-weight:600;">' + esc(STORE_NAME) + '</div><div style="font-size:12px;color:#6B7280;">' + esc(STORE_ADDRESS) + '</div></div></div>';
+    html += '<div class="receipt-meta"><span>Bill #' + bill.billNumber + '</span><span>' + esc(bill.date) + '</span></div>';
+    if (bill.customerName) html += '<div style="font-size:12px;color:#6B7280;padding:2px 0 8px;">Customer: ' + esc(bill.customerName) + '</div>';
+    html += '<table style="margin-top:8px;"><thead><tr style="border-bottom:1px solid #E5E7EB;color:#6B7280;text-align:left;"><td style="padding:6px 0;">Item</td><td style="padding:6px 0;text-align:center;">Qty</td><td style="padding:6px 0;text-align:right;">Amount</td></tr></thead><tbody>';
+    bill.items.forEach(function (it) {
+      html += '<tr style="border-bottom:1px solid #F3F4F6;"><td style="padding:6px 0;">' + esc(it.name) + '</td><td style="padding:6px 0;text-align:center;">' + it.qty + (it.uom ? ' ' + esc(it.uom) : '') + '</td><td style="padding:6px 0;text-align:right;">' + currency(it.qty * it.unitRetail) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    html += '<div style="padding-top:10px;">';
+    html += '<div class="totals-row"><span>Subtotal</span><span>' + currency(bill.subtotal) + '</span></div>';
+    if (bill.discount > 0) html += '<div class="totals-row"><span>Discount</span><span>-' + currency(bill.discount) + '</span></div>';
+    html += '<div class="grand-total"><span>Total</span><span>' + currency(bill.total) + '</span></div>';
+    html += '</div>';
+    html += '<div style="text-align:center;font-size:12px;color:#6B7280;padding-top:16px;">Thank you</div>';
+    html += '<div class="btn-row no-print">';
+    html += '<button class="btn-outline" id="printBillBtn">Print</button>';
+    html += '<button class="btn-whatsapp" id="whatsappBillBtn">Share on WhatsApp</button>';
+    html += '<button class="btn-primary" id="newBillBtn">New bill</button>';
+    html += '</div>';
+    html += '</div></div>';
+    return html;
+  }
+
+  function billToText(bill) {
+    var lines = [];
+    lines.push(STORE_NAME);
+    lines.push(STORE_ADDRESS);
+    lines.push("Bill #" + bill.billNumber + " · " + bill.date);
+    if (bill.customerName) lines.push("Customer: " + bill.customerName);
+    lines.push("");
+    bill.items.forEach(function (it) {
+      lines.push(it.name + " — " + it.qty + (it.uom ? " " + it.uom : "") + " x " + currency(it.unitRetail) + " = " + currency(it.qty * it.unitRetail));
+    });
+    lines.push("");
+    lines.push("Subtotal: " + currency(bill.subtotal));
+    if (bill.discount > 0) lines.push("Discount: -" + currency(bill.discount));
+    lines.push("Total: " + currency(bill.total));
+    lines.push("");
+    lines.push("Thank you!");
+    return lines.join("\n");
+  }
+
+  function productsToCsv(products) {
+    var header = ["name", "category", "uom", "costPrice", "retailPrice", "qty", "reorderLevel", "supplier"];
+    var rows = [header.join(",")];
+    products.forEach(function (p) {
+      var row = header.map(function (k) {
+        var v = p[k] == null ? "" : String(p[k]);
+        if (v.indexOf(",") !== -1 || v.indexOf('"') !== -1) v = '"' + v.replace(/"/g, '""') + '"';
+        return v;
+      });
+      rows.push(row.join(","));
+    });
+    return rows.join("\n");
+  }
+
+  function parseCsv(text) {
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ""; });
+    if (!lines.length) return [];
+    var header = splitCsvLine(lines[0]);
+    var out = [];
+    for (var i = 1; i < lines.length; i++) {
+      var cols = splitCsvLine(lines[i]);
+      var obj = {};
+      header.forEach(function (h, idx) { obj[h] = cols[idx] !== undefined ? cols[idx] : ""; });
+      out.push(obj);
+    }
+    return out;
+  }
+  function splitCsvLine(line) {
+    var result = [], cur = "", inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { cur += ch; }
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ',') { result.push(cur); cur = ""; }
+        else cur += ch;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function downloadFile(filename, content, mime) {
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- EVENT HANDLERS ----------
+  function attachHandlers() {
+    var logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.addEventListener("click", function () { state.loggedIn = false; render(); });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function (el) {
+      el.addEventListener("click", function () { state.tab = el.getAttribute("data-tab"); state.posWarning = ""; state.showCustomItemForm = false; render(); });
+    });
+
+    // Inventory
+    var invSearch = document.getElementById("invSearch");
+    if (invSearch) invSearch.addEventListener("input", function () { state.invQuery = invSearch.value; render(); setTimeout(function () { var el = document.getElementById("invSearch"); if (el) { el.focus(); el.selectionStart = el.selectionEnd = el.value.length; } }, 0); });
+
+    var addBtn = document.getElementById("addProductBtn");
+    if (addBtn) addBtn.addEventListener("click", function () {
+      state.editingProductId = null;
+      state.form = { name: "", category: CATEGORIES[0], uom: UOMS[0], costPrice: "", retailPrice: "", qty: "", reorderLevel: "", supplier: "" };
+      state.showProductForm = true; render();
+    });
+
+    var exportBtn = document.getElementById("exportCsvBtn");
+    if (exportBtn) exportBtn.addEventListener("click", function () {
+      downloadFile("products.csv", productsToCsv(state.products), "text/csv");
+    });
+    var importBtn = document.getElementById("importCsvBtn");
+    var importFile = document.getElementById("importCsvFile");
+    if (importBtn && importFile) {
+      importBtn.addEventListener("click", function () { importFile.click(); });
+      importFile.addEventListener("change", function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var rows = parseCsv(reader.result);
+          var added = 0;
+          var importedRecords = [];
+          rows.forEach(function (r) {
+            if (!r.name) return;
+            var rec = {
+              id: uid(), name: r.name, category: r.category || CATEGORIES[0], uom: r.uom || UOMS[0],
+              costPrice: Number(r.costPrice) || 0, retailPrice: Number(r.retailPrice) || 0,
+              qty: (r.qty === "" || r.qty == null) ? null : Number(r.qty),
+              reorderLevel: (r.reorderLevel === "" || r.reorderLevel == null) ? null : Number(r.reorderLevel),
+              supplier: r.supplier || "", updatedAt: new Date().toISOString(), deleted: false
+            };
+            state.products.unshift(rec);
+            importedRecords.push(rec);
+            added++;
+          });
+          persist();
+          render();
+          importedRecords.forEach(pushProduct);
+          alert(added + " products imported.");
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-edit]"), function (el) {
+      el.addEventListener("click", function () {
+        var p = state.products.find(function (x) { return x.id === el.getAttribute("data-edit"); });
+        state.editingProductId = p.id;
+        state.form = { name: p.name, category: p.category, uom: p.uom, costPrice: String(p.costPrice), retailPrice: String(p.retailPrice), qty: p.qty == null ? "" : String(p.qty), reorderLevel: p.reorderLevel == null ? "" : String(p.reorderLevel), supplier: p.supplier || "" };
+        state.showProductForm = true; render();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-delete]"), function (el) {
+      el.addEventListener("click", function () {
+        if (!confirm("Delete this product?")) return;
+        var id = el.getAttribute("data-delete");
+        var deletedRecord = state.products.find(function (p) { return p.id === id; });
+        state.products = state.products.filter(function (p) { return p.id !== id; });
+        persist(); render();
+        if (deletedRecord) {
+          deletedRecord.deleted = true;
+          deletedRecord.updatedAt = new Date().toISOString();
+          pushProduct(deletedRecord);
+        }
+      });
+    });
+
+    // Product form
+    var overlay = document.getElementById("productOverlay");
+    if (overlay) {
+      overlay.addEventListener("click", function (e) { if (e.target === overlay) { state.showProductForm = false; render(); } });
+      document.getElementById("closeProductForm").addEventListener("click", function () { state.showProductForm = false; render(); });
+      var fieldIdMap = { f_name: "name", f_category: "category", f_uom: "uom", f_cost: "costPrice", f_retail: "retailPrice", f_qty: "qty", f_reorder: "reorderLevel", f_supplier: "supplier" };
+      Object.keys(fieldIdMap).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener("input", function () {
+          state.form[fieldIdMap[id]] = el.value;
+        });
+      });
+      var costEl = document.getElementById("f_cost"), retailEl = document.getElementById("f_retail");
+      if (costEl) costEl.addEventListener("input", updateMarginBox);
+      if (retailEl) retailEl.addEventListener("input", updateMarginBox);
+      updateMarginBox();
+      var uomEl = document.getElementById("f_uom");
+      if (uomEl) uomEl.addEventListener("change", function () {
+        var costLbl = document.getElementById("costLabel"), retailLbl = document.getElementById("retailLabel");
+        if (costLbl) costLbl.textContent = "Cost price (" + unitLabel(uomEl.value) + ")";
+        if (retailLbl) retailLbl.textContent = "Retail price (" + unitLabel(uomEl.value) + ")";
+      });
+
+      document.getElementById("saveProductBtn").addEventListener("click", function () {
+        var f = state.form;
+        var errEl = document.getElementById("formError");
+        if (!f.name || !f.name.trim()) { errEl.textContent = "Enter a product name."; return; }
+        if (f.costPrice === "" || isNaN(parseNum(f.costPrice))) { errEl.textContent = "Enter a valid cost price."; return; }
+        if (f.retailPrice === "" || isNaN(parseNum(f.retailPrice))) { errEl.textContent = "Enter a valid retail price."; return; }
+        var record = {
+          id: state.editingProductId || uid(),
+          name: f.name.trim(), category: f.category, uom: f.uom,
+          costPrice: parseNum(f.costPrice), retailPrice: parseNum(f.retailPrice),
+          qty: (f.qty === "" || f.qty == null) ? null : parseNum(f.qty),
+          reorderLevel: (f.reorderLevel === "" || f.reorderLevel == null) ? null : parseNum(f.reorderLevel),
+          supplier: (f.supplier || "").trim(),
+          updatedAt: new Date().toISOString(), deleted: false
+        };
+        if (state.editingProductId) {
+          state.products = state.products.map(function (p) { return p.id === state.editingProductId ? record : p; });
+        } else {
+          state.products.unshift(record);
+        }
+        state.showProductForm = false;
+        persist(); render();
+        pushProduct(record);
+      });
+    }
+
+    // POS
+    var posSearch = document.getElementById("posSearch");
+    if (posSearch) posSearch.addEventListener("input", function () { state.posQuery = posSearch.value; render(); setTimeout(function () { var el = document.getElementById("posSearch"); if (el) { el.focus(); el.selectionStart = el.selectionEnd = el.value.length; } }, 0); });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-add]"), function (el) {
+      el.addEventListener("click", function () { addToCart(el.getAttribute("data-add")); });
+    });
+
+    var custEl = document.getElementById("customerName");
+    if (custEl) custEl.addEventListener("input", function () { state.customerName = custEl.value; });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-qtyminus]"), function (el) {
+      el.addEventListener("click", function () { changeQty(el.getAttribute("data-qtyminus"), -1); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-qtyplus]"), function (el) {
+      el.addEventListener("click", function () { changeQty(el.getAttribute("data-qtyplus"), 1); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-qtyinput]"), function (el) {
+      el.addEventListener("change", function () { setQtyDirect(el.getAttribute("data-qtyinput"), el.value); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-removeline]"), function (el) {
+      el.addEventListener("click", function () {
+        state.cart = state.cart.filter(function (c) { return c.lineId !== el.getAttribute("data-removeline"); });
+        render();
+      });
+    });
+
+    var addCustomBtn = document.getElementById("addCustomItemBtn");
+    if (addCustomBtn) addCustomBtn.addEventListener("click", function () {
+      state.showCustomItemForm = true;
+      state.customItemDraft = { name: "", qty: "", price: "" };
+      render();
+    });
+    var ciName = document.getElementById("ci_name"), ciQty = document.getElementById("ci_qty"), ciPrice = document.getElementById("ci_price");
+    if (ciName) ciName.addEventListener("input", function () { state.customItemDraft.name = ciName.value; });
+    if (ciQty) ciQty.addEventListener("input", function () { state.customItemDraft.qty = ciQty.value; });
+    if (ciPrice) ciPrice.addEventListener("input", function () { state.customItemDraft.price = ciPrice.value; });
+    var saveCustomBtn = document.getElementById("saveCustomItemBtn");
+    if (saveCustomBtn) saveCustomBtn.addEventListener("click", function () {
+      var d = state.customItemDraft;
+      var errEl = document.getElementById("customItemError");
+      if (!d.name || !d.name.trim()) { errEl.textContent = "Enter an item name."; return; }
+      var qtyNum = parseNum(d.qty), priceNum = parseNum(d.price);
+      if (d.qty === "" || isNaN(qtyNum) || qtyNum <= 0) { errEl.textContent = "Enter a valid quantity."; return; }
+      if (d.price === "" || isNaN(priceNum)) { errEl.textContent = "Enter a valid price."; return; }
+      addCustomItem(d.name.trim(), qtyNum, priceNum);
+      state.showCustomItemForm = false;
+      state.posWarning = "";
+      render();
+    });
+    var cancelCustomBtn = document.getElementById("cancelCustomItemBtn");
+    if (cancelCustomBtn) cancelCustomBtn.addEventListener("click", function () { state.showCustomItemForm = false; render(); });
+
+    var discountInput = document.getElementById("discountInput");
+    if (discountInput) discountInput.addEventListener("input", function () {
+      state.discount = discountInput.value;
+      render();
+      setTimeout(function () {
+        var el = document.getElementById("discountInput");
+        if (el) { el.focus(); el.selectionStart = el.selectionEnd = el.value.length; }
+      }, 0);
+    });
+
+    var confirmBtn = document.getElementById("confirmSaleBtn");
+    if (confirmBtn) confirmBtn.addEventListener("click", confirmSale);
+
+    // Receipt
+    var printBtn = document.getElementById("printBillBtn");
+    if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
+    var waBtn = document.getElementById("whatsappBillBtn");
+    if (waBtn) waBtn.addEventListener("click", function () { shareBill(state.receiptBill); });
+    var newBillBtn = document.getElementById("newBillBtn");
+    if (newBillBtn) newBillBtn.addEventListener("click", function () {
+      state.cart = []; state.customerName = ""; state.discount = ""; state.receiptBill = null; state.posWarning = "";
+      render();
+    });
+  }
+
+  function addToCart(productId) {
+    var p = state.products.find(function (x) { return x.id === productId; });
+    if (!p) return;
+    state.posWarning = "";
+    var tracked = p.qty != null;
+    var existing = state.cart.find(function (c) { return c.productId === productId; });
+    if (existing) {
+      if (tracked && existing.qty + 1 > p.qty) { state.posWarning = "Only " + p.qty + " " + p.uom + " of " + p.name + " in stock."; render(); return; }
+      existing.qty += 1;
+    } else {
+      if (tracked && p.qty < 1) { state.posWarning = p.name + " is out of stock."; render(); return; }
+      state.cart.push({ lineId: uid(), productId: p.id, name: p.name, uom: p.uom, unitRetail: p.retailPrice, unitCost: p.costPrice, qty: 1, maxQty: tracked ? p.qty : null });
+    }
+    state.posQuery = "";
+    render();
+  }
+  function addCustomItem(name, qty, price) {
+    state.cart.push({ lineId: uid(), productId: null, name: name, uom: "", unitRetail: price, unitCost: 0, qty: qty, maxQty: null });
+  }
+  function changeQty(lineId, delta) {
+    state.posWarning = "";
+    var c = state.cart.find(function (x) { return x.lineId === lineId; });
+    if (!c) return;
+    var next = Math.round((c.qty + delta) * 100) / 100;
+    if (next < 0.01) return;
+    if (c.maxQty != null && next > c.maxQty) { state.posWarning = "Only " + c.maxQty + " " + c.uom + " of " + c.name + " in stock."; render(); return; }
+    c.qty = next; render();
+  }
+  function setQtyDirect(lineId, value) {
+    state.posWarning = "";
+    var c = state.cart.find(function (x) { return x.lineId === lineId; });
+    if (!c) return;
+    var v = parseNum(value);
+    if (isNaN(v) || v <= 0) { render(); return; }
+    if (c.maxQty != null && v > c.maxQty) { state.posWarning = "Only " + c.maxQty + " " + c.uom + " of " + c.name + " in stock."; v = c.maxQty; }
+    c.qty = v; render();
+  }
+
+  function confirmSale() {
+    if (!state.cart.length) { state.posWarning = "Add at least one item first."; render(); return; }
+    var subtotal = state.cart.reduce(function (s, c) { return s + c.qty * c.unitRetail; }, 0);
+    var discountVal = parseNum(state.discount) || 0;
+    var total = Math.max(0, subtotal - discountVal);
+    var billNumber = 1000 + state.bills.length + 1;
+    var bill = {
+      id: uid(), billNumber: billNumber, date: todayStr(), customerName: state.customerName.trim(),
+      items: state.cart.map(function (c) { return { name: c.name, uom: c.uom, qty: c.qty, unitRetail: c.unitRetail, unitCost: c.unitCost }; }),
+      subtotal: subtotal, discount: discountVal, total: total, updatedAt: new Date().toISOString()
+    };
+    state.bills.unshift(bill);
+    var touchedProducts = [];
+    state.cart.forEach(function (c) {
+      if (!c.productId) return;
+      var p = state.products.find(function (x) { return x.id === c.productId; });
+      if (p && p.qty != null) {
+        p.qty = Math.round((p.qty - c.qty) * 100) / 100;
+        p.updatedAt = new Date().toISOString();
+        touchedProducts.push(p);
+      }
+    });
+    state.receiptBill = bill;
+    persist();
+    render();
+    pushBill(bill);
+    touchedProducts.forEach(pushProduct);
+  }
+
+  function shareBill(bill) {
+    var text = billToText(bill);
+    if (navigator.share) {
+      navigator.share({ title: "Bill #" + bill.billNumber, text: text }).catch(function () {});
+    } else {
+      window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+    }
+  }
+
+  // First-run login state
+  state.loggedIn = false;
+  render();
+  if (supabaseClient) {
+    pullAndMerge();
+    subscribeRealtime();
+    setInterval(flushPendingQueue, 30000);
+  }
+})();
+</script>
+<script>
+  // Structural only: enables offline caching + installable app when served over http(s).
+  // No-op (and harmless) when opened directly as a local file.
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("service-worker.js").catch(function (err) {
+        console.warn("Service worker registration failed:", err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
